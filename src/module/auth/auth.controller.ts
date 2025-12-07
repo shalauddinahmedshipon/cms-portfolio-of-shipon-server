@@ -10,6 +10,10 @@ import {
 } from './dto/forget-reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { Request, Response } from 'express';
+import { ApiBody, ApiOperation } from '@nestjs/swagger';
+import { CreateContentManagerDto } from './dto/create-user.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from '@prisma/client';
 
 @Controller('auth')
 export class AuthController {
@@ -87,7 +91,23 @@ export class AuthController {
     });
   }
 
+  @Post('create-content-manager')
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Create a new Content Manager user' })
+  @ApiBody({ type: CreateContentManagerDto })
+  async createContentManager(
+    @Body() dto: CreateContentManagerDto,
+    @Res() res: Response,
+  ) {
+    const result = await this.authService.createContentManager(dto);
 
+    return sendResponse(res, {
+      statusCode: HttpStatus.CREATED,
+      success: true,
+      message: 'Content Manager created successfully',
+      data: result,
+    });
+  }
 
 
 }

@@ -16,6 +16,7 @@ import {
 } from './dto/forget-reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { generateOtpCode, getTokens, hashOtpCode, verifyOtp } from './auth.utils';
+import { CreateContentManagerDto } from './dto/create-user.dto';
 
 
 @Injectable()
@@ -134,5 +135,30 @@ export class AuthService {
     return { message: 'Password reset successful' };
   }
 
- 
+ async createContentManager(dto: CreateContentManagerDto) {
+  const exists = await this.prisma.user.findUnique({
+    where: { email: dto.email },
+  });
+
+  if (exists) {
+    throw new BadRequestException('Email already exists');
+  }
+
+  const hashedPassword = await bcrypt.hash(
+    dto.password,
+    parseInt(process.env.SALT_ROUND!),
+  );
+
+  const user = await this.prisma.user.create({
+    data: {
+      email: dto.email,
+      fullName: dto.fullName,
+      password: hashedPassword,
+      role: 'CONTENT_MANAGER',
+    },
+  });
+
+  return user;
+}
+
 }

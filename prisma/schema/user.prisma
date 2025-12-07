@@ -5,14 +5,12 @@ model User{
   email String @unique
   password String
   isActive Boolean @default(true)
-  role     Role @default(USER)
+  role     Role 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 enum Role {
   ADMIN
-  SELLER
-  EMPLOYER
-  USER
+  CONTENT_MANAGER
 }
