@@ -7,7 +7,8 @@ import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './module/user/user.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { SeederService } from './seeder/seeder.service';
-// import { QuoteModule } from './module/quote/quote.module';
+import { ProfileModule } from './module/profile/profile.module';
+import { CloudinaryModule } from './common/cloudinary/cloudinary.module';
 
 
 
@@ -29,7 +30,8 @@ import { SeederService } from './seeder/seeder.service';
     PrismaModule,
     AuthModule,
     UserModule,
-    // QuoteModule,
+    ProfileModule,
+    CloudinaryModule
   ],
   controllers: [AppController],
   providers: [AppService, SeederService],

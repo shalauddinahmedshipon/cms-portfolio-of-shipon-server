@@ -1,0 +1,13 @@
+model Profile {
+  id String @id @default("main-profile")
+  name         String?
+  designation  String?
+  headline     String?
+  bio          String?
+  avatarUrl    String?
+  resumeUrl    String?
+  bannerUrl    String?
+  location     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
