@@ -1,0 +1,22 @@
+model Blog {
+  id            String   @id @default(uuid())
+  title         String
+  serialNo      Int
+  content       String   
+  coverImage    String?
+  category      BlogCategory
+  tags          String[] // ['nestjs', 'backend', 'api']
+  isActive      Boolean  @default(true)
+  isFeatured    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// Optional: Enums for category
+enum BlogCategory {
+  TECHNOLOGY
+  PROGRAMMING
+  LIFESTYLE
+  TUTORIAL
+  NEWS
+}

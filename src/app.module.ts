@@ -10,6 +10,7 @@ import { SeederService } from './seeder/seeder.service';
 import { ProfileModule } from './module/profile/profile.module';
 import { CloudinaryModule } from './common/cloudinary/cloudinary.module';
 import { ProjectModule } from './module/project/project.module';
+import { BlogModule } from './module/blog/blog.module';
 
 
 
@@ -33,7 +34,8 @@ import { ProjectModule } from './module/project/project.module';
     UserModule,
     ProfileModule,
     CloudinaryModule,
-    ProjectModule
+    ProjectModule,
+    BlogModule
   ],
   controllers: [AppController],
   providers: [AppService, SeederService],
