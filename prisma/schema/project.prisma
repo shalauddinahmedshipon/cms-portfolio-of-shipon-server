@@ -10,7 +10,7 @@ model Project {
   githubBackendUrl  String?
   category          Category
   isFavorite        Boolean         @default(false)
-  serialNo          Int?
+  serialNo          Int?            @unique
   isActive          Boolean         @default(true)
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt

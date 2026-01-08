@@ -1,10 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { GetEventsQueryDto } from './dto/get-event-query.dto';
-
 
 @Injectable()
 export class EventService {
@@ -13,7 +12,20 @@ export class EventService {
     private cloudinaryService: CloudinaryService,
   ) {}
 
+  // ---------- CREATE ----------
   async create(dto: CreateEventDto) {
+    // Check duplicate serialNo
+    if (dto.serialNo !== undefined) {
+      const exists = await this.prisma.event.findUnique({
+        where: { serialNo: dto.serialNo },
+      });
+      if (exists) {
+        throw new BadRequestException(
+          `Event with serialNo ${dto.serialNo} already exists`,
+        );
+      }
+    }
+
     return this.prisma.event.create({
       data: {
         ...dto,
@@ -22,10 +34,24 @@ export class EventService {
     });
   }
 
+  // ---------- UPDATE ----------
   async update(id: string, dto: UpdateEventDto, newImages: string[] = []) {
     const existing = await this.prisma.event.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Event not found');
 
+    // Check duplicate serialNo if updating
+    if (dto.serialNo !== undefined && dto.serialNo !== existing.serialNo) {
+      const serialExists = await this.prisma.event.findUnique({
+        where: { serialNo: dto.serialNo },
+      });
+      if (serialExists) {
+        throw new BadRequestException(
+          `Event with serialNo ${dto.serialNo} already exists`,
+        );
+      }
+    }
+
+    // Replace images if new uploaded
     if (newImages.length > 0) {
       for (const url of existing.images || []) {
         await this.cloudinaryService.deleteImageByUrl(url);
@@ -42,6 +68,7 @@ export class EventService {
     });
   }
 
+  // ---------- DELETE ----------
   async delete(id: string) {
     const event = await this.prisma.event.findUnique({ where: { id } });
     if (!event) throw new NotFoundException('Event not found');
@@ -53,6 +80,7 @@ export class EventService {
     return this.prisma.event.delete({ where: { id } });
   }
 
+  // ---------- GET ALL ----------
   async getAllEvents(query: GetEventsQueryDto) {
     const { page = 1, limit = 10, search, eventType, isActive } = query;
     const skip = (page - 1) * limit;
@@ -90,6 +118,7 @@ export class EventService {
     };
   }
 
+  // ---------- GET ONE ----------
   async findOne(id: string) {
     const event = await this.prisma.event.findUnique({ where: { id } });
     if (!event) throw new NotFoundException('Event not found');

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
@@ -12,7 +12,20 @@ export class ProjectService {
     private cloudinaryService: CloudinaryService,
   ) {}
 
+  // ---------- CREATE ----------
   async create(dto: CreateProjectDto) {
+    // Validate duplicate serialNo
+    if (dto.serialNo !== undefined) {
+      const exists = await this.prisma.project.findUnique({
+        where: { serialNo: dto.serialNo },
+      });
+      if (exists) {
+        throw new BadRequestException(
+          `Project with serialNo ${dto.serialNo} already exists`,
+        );
+      }
+    }
+
     return this.prisma.project.create({
       data: {
         name: dto.name,
@@ -23,15 +36,28 @@ export class ProjectService {
         githubFrontendUrl: dto.githubFrontendUrl,
         githubBackendUrl: dto.githubBackendUrl,
         category: dto.category,
-        serialNo:dto.serialNo,
+        serialNo: dto.serialNo,
         images: dto.images || [],
       },
     });
   }
 
+  // ---------- UPDATE ----------
   async update(id: string, dto: UpdateProjectDto, newImages: string[] = []) {
     const existing = await this.prisma.project.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Project not found');
+
+    // Check duplicate serialNo if updating it
+    if (dto.serialNo !== undefined && dto.serialNo !== existing.serialNo) {
+      const serialExists = await this.prisma.project.findUnique({
+        where: { serialNo: dto.serialNo },
+      });
+      if (serialExists) {
+        throw new BadRequestException(
+          `Project with serialNo ${dto.serialNo} already exists`,
+        );
+      }
+    }
 
     // If new images uploaded → delete old ones
     if (newImages.length > 0) {
@@ -45,7 +71,7 @@ export class ProjectService {
     return this.prisma.project.update({
       where: { id },
       data: {
-        serialNo:dto.serialNo,
+        serialNo: dto.serialNo,
         name: dto.name,
         title: dto.title,
         description: dto.description,
@@ -54,13 +80,14 @@ export class ProjectService {
         githubFrontendUrl: dto.githubFrontendUrl,
         githubBackendUrl: dto.githubBackendUrl,
         category: dto.category,
-        isFavorite:dto.isFavorite,
-        isActive:dto.isActive,
+        isFavorite: dto.isFavorite,
+        isActive: dto.isActive,
         ...(dto.images ? { images: dto.images } : {}),
       },
     });
   }
 
+  // ---------- DELETE ----------
   async delete(id: string) {
     const project = await this.prisma.project.findUnique({ where: { id } });
     if (!project) throw new NotFoundException('Project not found');
@@ -72,51 +99,48 @@ export class ProjectService {
 
     return this.prisma.project.delete({ where: { id } });
   }
-  
-async getAllProjects(query: GetProjectsQueryDto) {
-  const { page = 1, limit = 10, search, category, isActive, isFavorite } = query;
 
-  const skip = (page - 1) * limit;
+  // ---------- GET ALL ----------
+  async getAllProjects(query: GetProjectsQueryDto) {
+    const { page = 1, limit = 10, search, category, isActive, isFavorite } = query;
 
-  const where: any = {};
+    const skip = (page - 1) * limit;
+    const where: any = {};
 
-  if (search) {
-    where.OR = [
-      { name: { contains: search, mode: 'insensitive' } },
-      { title: { contains: search, mode: 'insensitive' } },
-      { description: { contains: search, mode: 'insensitive' } },
-      { technology: { contains: search, mode: 'insensitive' } },
-    ];
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { technology: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (category) where.category = category;
+    if (typeof isActive === 'boolean') where.isActive = isActive;
+    if (typeof isFavorite === 'boolean') where.isFavorite = isFavorite;
+
+    const [data, total] = await Promise.all([
+      this.prisma.project.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.project.count({ where }),
+    ]);
+
+    return {
+      success: true,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      data,
+    };
   }
 
-  if (category) where.category = category;
-
-  if (typeof isActive === 'boolean') where.isActive = isActive;
-
-  if (typeof isFavorite === 'boolean') where.isFavorite = isFavorite;
-
-  const [data, total] = await Promise.all([
-    this.prisma.project.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-    }),
-    this.prisma.project.count({ where }),
-  ]);
-
-  return {
-    success: true,
-    total,
-    page,
-    limit,
-    totalPages: Math.ceil(total / limit),
-    data,
-  };
-}
-
-
-
+  // ---------- GET ONE ----------
   async findOne(id: string) {
     const project = await this.prisma.project.findUnique({ where: { id } });
     if (!project) throw new NotFoundException('Project not found');

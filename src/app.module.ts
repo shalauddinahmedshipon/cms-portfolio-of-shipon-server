@@ -13,6 +13,7 @@ import { ProjectModule } from './module/project/project.module';
 import { BlogModule } from './module/blog/blog.module';
 import { EventModule } from './module/event/event.module';
 import { GalleryModule } from './module/gallery/gallery.module';
+import { SkillModule } from './module/skill/skill.module';
 
 
 
@@ -39,7 +40,8 @@ import { GalleryModule } from './module/gallery/gallery.module';
     ProjectModule,
     BlogModule,
     EventModule,
-    GalleryModule
+    GalleryModule,
+    SkillModule
   ],
   controllers: [AppController],
   providers: [AppService, SeederService],
