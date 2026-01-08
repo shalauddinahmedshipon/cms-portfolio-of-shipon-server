@@ -11,6 +11,7 @@ import { ProfileModule } from './module/profile/profile.module';
 import { CloudinaryModule } from './common/cloudinary/cloudinary.module';
 import { ProjectModule } from './module/project/project.module';
 import { BlogModule } from './module/blog/blog.module';
+import { EventModule } from './module/event/event.module';
 
 
 
@@ -35,7 +36,8 @@ import { BlogModule } from './module/blog/blog.module';
     ProfileModule,
     CloudinaryModule,
     ProjectModule,
-    BlogModule
+    BlogModule,
+    EventModule
   ],
   controllers: [AppController],
   providers: [AppService, SeederService],
