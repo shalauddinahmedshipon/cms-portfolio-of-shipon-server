@@ -1,0 +1,14 @@
+model Experience {
+  id           String   @id @default(uuid())
+  companyName  String
+  role         String
+  employmentType String?   // Full-time, Part-time, Contract
+  startDate    DateTime
+  endDate      DateTime?   // null = currently working
+  isCurrent    Boolean  @default(false)
+  location     String?
+  description  String?
+  companyLogo  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

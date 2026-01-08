@@ -15,6 +15,7 @@ import { EventModule } from './module/event/event.module';
 import { GalleryModule } from './module/gallery/gallery.module';
 import { SkillModule } from './module/skill/skill.module';
 import { EducationModule } from './module/education/education.module';
+import { ExperienceModule } from './module/experience/experience.module';
 
 
 
@@ -43,7 +44,8 @@ import { EducationModule } from './module/education/education.module';
     EventModule,
     GalleryModule,
     SkillModule,
-    EducationModule
+    EducationModule,
+    ExperienceModule
   ],
   controllers: [AppController],
   providers: [AppService, SeederService],
