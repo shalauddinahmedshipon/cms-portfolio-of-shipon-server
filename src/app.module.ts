@@ -12,6 +12,7 @@ import { CloudinaryModule } from './common/cloudinary/cloudinary.module';
 import { ProjectModule } from './module/project/project.module';
 import { BlogModule } from './module/blog/blog.module';
 import { EventModule } from './module/event/event.module';
+import { GalleryModule } from './module/gallery/gallery.module';
 
 
 
@@ -37,7 +38,8 @@ import { EventModule } from './module/event/event.module';
     CloudinaryModule,
     ProjectModule,
     BlogModule,
-    EventModule
+    EventModule,
+    GalleryModule
   ],
   controllers: [AppController],
   providers: [AppService, SeederService],

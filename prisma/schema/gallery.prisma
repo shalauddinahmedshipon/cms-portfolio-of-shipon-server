@@ -1,0 +1,6 @@
+model Gallery {
+  id        String   @id @default(uuid())
+  title     String
+  image     String
+  createdAt DateTime @default(now())
+}
