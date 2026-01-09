@@ -11,7 +11,8 @@ export class ProfileService {
   async getProfile() {
     const profile = await this.prisma.profile.findFirst({
       include:{
-        contactInfo:true
+        contactInfo:true,
+        codingProfile:true
       }
     });
     if (!profile) {

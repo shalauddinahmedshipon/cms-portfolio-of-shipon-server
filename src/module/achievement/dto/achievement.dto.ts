@@ -1,5 +1,6 @@
 import { IsString, IsOptional, IsUrl, IsDateString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 /* -------------------- CREATE -------------------- */
 export class CreateAchievementDto {
@@ -42,12 +43,12 @@ export class CreateAchievementDto {
   @IsUrl()
   proofUrl?: string;
 
-  @ApiPropertyOptional({
+ @ApiPropertyOptional({
     example: '2026-01-10',
-    description: 'Date when the achievement was earned',
+    description: 'Date when the achievement was earned (YYYY-MM-DD)',
   })
   @IsOptional()
-  @IsDateString()
+  @IsString()
   achievedAt?: string;
 }
 
