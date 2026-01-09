@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { UpdateProfileDto } from './dto/profile.dto';
+import { UpdateContactInfoDto, UpdateProfileDto } from './dto/profile.dto';
 
 
 @Injectable()
@@ -9,7 +9,11 @@ export class ProfileService {
 
 
   async getProfile() {
-    const profile = await this.prisma.profile.findFirst();
+    const profile = await this.prisma.profile.findFirst({
+      include:{
+        contactInfo:true
+      }
+    });
     if (!profile) {
       throw new NotFoundException('Profile not found');
     }
@@ -25,4 +29,18 @@ export class ProfileService {
     });
     return profile;
   }
+
+  async updateContactInfo(dto: UpdateContactInfoDto) {
+  return this.prisma.contactInfo.upsert({
+    where: { profileId: 'main-profile' },
+    create: {
+      profileId: 'main-profile',
+      ...dto,
+    },
+    update: {
+      ...dto,
+    },
+  });
+}
+
 }

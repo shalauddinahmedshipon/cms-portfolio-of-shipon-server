@@ -13,7 +13,7 @@ import { Response } from 'express';
 import { ApiTags, ApiOperation, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import sendResponse from '../utils/sendResponse';
-import { UpdateProfileDto } from './dto/profile.dto';
+import { UpdateContactInfoDto, UpdateProfileDto } from './dto/profile.dto';
 import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
 
 @ApiTags('Profile')
@@ -88,4 +88,24 @@ export class ProfileController {
       data: profile,
     });
   }
+
+@Patch('contact')
+@ApiOperation({ summary: 'Update contact information' })
+async updateContactInfo(
+  @Body() dto: UpdateContactInfoDto,
+  @Res() res: Response,
+) {
+  const data = await this.profileService.updateContactInfo(dto);
+
+  return sendResponse(res, {
+    statusCode: HttpStatus.OK,
+    success: true,
+    message: 'Contact info updated successfully',
+    data,
+  });
+}
+
+
+
+
 }
