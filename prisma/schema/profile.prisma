@@ -9,6 +9,7 @@ model Profile {
   bannerUrl    String?
   location     String?
   contactInfo  ContactInfo?
+  codingProfile  CodingProfile[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -30,3 +31,24 @@ model ContactInfo {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+
+model CodingProfile {
+  id          String   @id @default(uuid())
+
+  platform    String   // "Codeforces", "CodeChef", "LeetCode"
+  username    String
+  profileUrl  String?
+  iconUrl     String?  // uploaded platform icon (SVG/PNG)
+
+  rating      Int?
+  badge       String?  // "Expert", "3 Star"
+  highlight   Boolean  @default(false)
+
+  profileId   String
+  profile     Profile  @relation(fields: [profileId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+

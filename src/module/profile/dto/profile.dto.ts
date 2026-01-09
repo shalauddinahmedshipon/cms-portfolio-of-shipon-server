@@ -1,5 +1,5 @@
-import { IsOptional, IsString, IsUrl } from 'class-validator';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsBoolean, IsInt, IsOptional, IsString, IsUrl } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail } from 'class-validator';
 
 
@@ -96,4 +96,50 @@ export class UpdateContactInfoDto {
   @IsOptional()
   @IsUrl()
   twitter?: string;
+}
+
+
+export class CreateCodingProfileDto {
+  @ApiProperty({
+    example: 'Codeforces',
+    description: 'Competitive programming platform name',
+  })
+  @IsString()
+  platform: string;
+
+  @ApiProperty({
+    example: 'tourist',
+    description: 'Username on the platform',
+  })
+  @IsString()
+  username: string;
+
+  @ApiPropertyOptional({
+    example: 'https://codeforces.com/profile/tourist',
+  })
+  @IsOptional()
+  @IsUrl()
+  profileUrl?: string;
+
+  @ApiPropertyOptional({
+    example: 1600,
+    description: 'Current rating',
+  })
+  @IsOptional()
+  @IsInt()
+  rating?: number;
+
+  @ApiPropertyOptional({
+    example: 'Expert',
+  })
+  @IsOptional()
+  @IsString()
+  badge?: string;
+
+  @ApiPropertyOptional({
+    example: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  highlight?: boolean;
 }
