@@ -18,7 +18,7 @@ import { SkillService } from './skill.service';
 import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
 import sendResponse from '../utils/sendResponse';
 import { CreateSkillCategoryDto, CreateSkillDto } from './dto/create-skill.dto';
-import { UpdateSkillCategoryDto, UpdateSkillDto } from './dto/update-skill.dto';
+import { ReorderItemDto, UpdateSkillCategoryDto, UpdateSkillDto } from './dto/update-skill.dto';
 import { Public } from 'src/common/decorators/public.decorators';
 
 @ApiTags('Skill')
@@ -55,8 +55,11 @@ export class SkillController {
     @UploadedFile() file: Express.Multer.File,
     @Res() res: Response,
   ) {
-    const iconUrl = await this.cloudinaryService.uploadImage(file, 'skill');
+   let iconUrl: string | undefined;
 
+  if (file) {
+    iconUrl = await this.cloudinaryService.uploadImage(file, 'skill');
+  }
     const skill = await this.skillService.createSkill({
       name: body.name,
       order: Number(body.order),
@@ -86,6 +89,41 @@ async getAllCategories(@Res() res: Response) {
     data,
   });
 }
+
+
+// ── REORDER ENDPOINTS ── (add these to your SkillController class)
+
+@ApiOperation({ summary: 'Reorder skills within their categories' })
+@Patch('reorder')
+async reorderSkills(
+  @Body() items: ReorderItemDto[],
+  @Res() res: Response,
+) {
+  const reordered = await this.skillService.reorderSkills(items);
+  return sendResponse(res, {
+    statusCode: HttpStatus.OK,
+    success: true,
+    message: 'Skills reordered successfully',
+    data: reordered,
+  });
+}
+
+@ApiOperation({ summary: 'Reorder skill categories' })
+@Patch('category/reorder')
+async reorderCategories(
+  @Body() items: ReorderItemDto[],
+  @Res() res: Response,
+) {
+  const reordered = await this.skillService.reorderCategories(items);
+  return sendResponse(res, {
+    statusCode: HttpStatus.OK,
+    success: true,
+    message: 'Categories reordered successfully',
+    data: reordered,
+  });
+}
+
+
 
 
 

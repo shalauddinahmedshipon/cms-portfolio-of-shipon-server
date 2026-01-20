@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsInt, IsOptional, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsString, IsInt, IsOptional, Min, IsNotEmpty } from 'class-validator';
 
 
 
@@ -40,4 +41,18 @@ export class UpdateSkillDto {
   })
   @IsOptional()
   icon?: any;
+}
+
+
+export class ReorderItemDto {
+  @ApiProperty({ example: 'skill-uuid-123', description: 'Skill ID' })
+  @IsString()
+  @IsNotEmpty()
+  id: string;
+
+  @ApiProperty({ example: 1, description: 'New order position (1-based)' })
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  order: number;
 }

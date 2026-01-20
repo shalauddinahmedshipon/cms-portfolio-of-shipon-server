@@ -19,7 +19,7 @@ import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
 import sendResponse from '../utils/sendResponse';
 import { Response } from 'express';
 import { CreateProjectDto } from './dto/create-project.dto';
-import { UpdateProjectDto } from './dto/update-project.dto';
+import { ReorderProjectDto, UpdateProjectDto } from './dto/update-project.dto';
 import { GetProjectsQueryDto } from './dto/get-project.dto';
 import { Public } from 'src/common/decorators/public.decorators';
 
@@ -31,40 +31,63 @@ export class ProjectController {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Create a project with images' })
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({ type: CreateProjectDto })
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'images', maxCount: 10 }]))
-  async create(
-    @Body() body: any,
-    @UploadedFiles() files: { images?: Express.Multer.File[] },
-    @Res() res: Response,
-  ) {
-    const dto: CreateProjectDto = {
-      ...body,
-      category: body.category as 'LEARNING' | 'LIVE',
-    };
+@Post()
+@ApiOperation({ summary: 'Create a project with images' })
+@ApiConsumes('multipart/form-data')
+@ApiBody({ type: CreateProjectDto })
+@UseInterceptors(FileFieldsInterceptor([{ name: 'images', maxCount: 10 }]))
+async create(
+  @Body() body: any,
+  @UploadedFiles() files: { images?: Express.Multer.File[] },
+  @Res() res: Response,
+) {
+  const dto: CreateProjectDto = {
+    name: body.name,
+    title: body.title,
+    description: body.description,
+    technology: body.technology,
+    liveSiteUrl: body.liveSiteUrl,
+    githubFrontendUrl: body.githubFrontendUrl,
+    githubBackendUrl: body.githubBackendUrl,
+    category: body.category as 'LEARNING' | 'LIVE',
+  };
 
-    const uploadedUrls = files?.images
-      ? await Promise.all(
-          files.images.map((file) =>
-            this.cloudinaryService.uploadImage(file, 'project'),
-          ),
-        )
-      : [];
+  const uploadedUrls = files?.images
+    ? await Promise.all(
+        files.images.map((file) =>
+          this.cloudinaryService.uploadImage(file, 'project'),
+        ),
+      )
+    : [];
 
-    dto.images = uploadedUrls;
+  const project = await this.projectService.create(dto, uploadedUrls);
 
-    const project = await this.projectService.create(dto);
+  return sendResponse(res, {
+    statusCode: HttpStatus.CREATED,
+    success: true,
+    message: 'Project created successfully',
+    data: project,
+  });
+}
 
-    return sendResponse(res, {
-      statusCode: HttpStatus.CREATED,
-      success: true,
-      message: 'Project created successfully',
-      data: project,
-    });
-  }
+
+@Patch('reorder')
+@ApiOperation({ summary: 'Reorder projects' })
+async reorder(
+  @Body() dto: ReorderProjectDto,
+  @Res() res: Response,
+) {
+  await this.projectService.reorderProjects(dto.ids)
+
+  return sendResponse(res, {
+    statusCode: HttpStatus.OK,
+    success: true,
+    message: 'Projects reordered successfully',
+    data: null,
+  })
+}
+
+
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a project (replace images)' })

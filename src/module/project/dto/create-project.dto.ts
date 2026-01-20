@@ -1,8 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateProjectDto {
-   @ApiProperty({ example: 1, description: 'Serial order of the project' })
-  serialNo: number;
   @ApiProperty({ example: 'My Project' })
   name: string;
 
@@ -27,10 +25,5 @@ export class CreateProjectDto {
   @ApiProperty({ enum: ['LEARNING', 'LIVE'], example: 'LEARNING' })
   category: 'LEARNING' | 'LIVE';
 
-  @ApiProperty({
-    type: 'array',
-    items: { type: 'string', format: 'binary' },
-    description: 'Upload multiple project images',
-  })
-  images: any[];
+
 }

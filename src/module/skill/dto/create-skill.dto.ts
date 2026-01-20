@@ -1,14 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsInt } from 'class-validator';
+import { IsString, IsInt, IsOptional } from 'class-validator';
 
 export class CreateSkillCategoryDto {
   @ApiProperty({ example: 'Backend' })
   @IsString()
   name: string;
 
-  @ApiProperty({ example: 1 })
+  @IsOptional()
   @IsInt()
-  order: number;
+  order?: number;
 }
 
 
@@ -18,9 +18,9 @@ export class CreateSkillDto {
   @IsString()
   name: string;
 
-  @ApiProperty({ example: 1 })
+ @IsOptional()
   @IsInt()
-  order: number;
+  order?: number;
 
   @ApiProperty({ example: 'category-id' })
   @IsString()
@@ -31,5 +31,6 @@ export class CreateSkillDto {
     format: 'binary',
     description: 'Skill icon',
   })
-  icon: any;
+  @IsOptional()
+  icon?: any;
 }

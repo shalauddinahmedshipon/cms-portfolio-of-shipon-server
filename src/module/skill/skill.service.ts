@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
 import { CreateSkillCategoryDto, CreateSkillDto } from './dto/create-skill.dto';
-import { UpdateSkillCategoryDto, UpdateSkillDto } from './dto/update-skill.dto';
+import { ReorderItemDto, UpdateSkillCategoryDto, UpdateSkillDto } from './dto/update-skill.dto';
 
 @Injectable()
 export class SkillService {
@@ -12,19 +12,28 @@ export class SkillService {
   ) {}
 
   // ---------- CATEGORY ----------
-  async createCategory(data: CreateSkillCategoryDto) {
-    // Check for duplicate order
-    const exists = await this.prisma.skillCategory.findUnique({
-      where: { order: data.order },
-    });
-    if (exists) {
-      throw new BadRequestException(
-        `Skill category with order ${data.order} already exists`,
-      );
-    }
+async createCategory(data: CreateSkillCategoryDto) {
+  let order = data.order;
 
-    return this.prisma.skillCategory.create({ data });
+  // 🧠 Auto-generate order if not provided
+  if (order === undefined) {
+    const last = await this.prisma.skillCategory.findFirst({
+      orderBy: { order: 'desc' },
+      select: { order: true },
+    });
+
+    order = last ? last.order + 1 : 1;
   }
+
+  // 🔐 Unique constraint will protect us
+  return this.prisma.skillCategory.create({
+    data: {
+      name: data.name,
+      order,
+    },
+  });
+}
+
 
 
 
@@ -41,34 +50,41 @@ export class SkillService {
   return categories.map((category) => ({
     id: category.id,
     name: category.name,
-    order: category.order,
+    order: category.order??0,
     skills: category.skills.map((skill) => ({
       id: skill.id,
       name: skill.name,
       icon: skill.icon,
-      order: skill.order,
+      order: skill.order??0,
     })),
   }));
 }
 
   // ---------- SKILL ----------
-  async createSkill(data: CreateSkillDto) {
-    // Check for duplicate order within the same category
-    const exists = await this.prisma.skill.findFirst({
-      where: {
-        order: data.order,
-        categoryId: data.categoryId,
-      },
+ async createSkill(data: CreateSkillDto) {
+  let order = data.order;
+
+  // 🧠 Auto-generate order per category
+  if (order === undefined) {
+    const last = await this.prisma.skill.findFirst({
+      where: { categoryId: data.categoryId },
+      orderBy: { order: 'desc' },
+      select: { order: true },
     });
 
-    if (exists) {
-      throw new BadRequestException(
-        `Skill with order ${data.order} already exists in this category`,
-      );
-    }
-
-    return this.prisma.skill.create({ data });
+    order = last ? last.order + 1 : 1;
   }
+
+  return this.prisma.skill.create({
+    data: {
+      name: data.name,
+      icon: data.icon??"",
+      categoryId: data.categoryId,
+      order,
+    },
+  });
+}
+
 
 
   async updateCategory(id: string, dto: UpdateSkillCategoryDto) {
@@ -172,8 +188,97 @@ export class SkillService {
   }
 
 
+// In SkillService.ts → replace your current reorderSkills method with this
+
+async reorderSkills(items: ReorderItemDto[]) {
+  if (!items.length) {
+    throw new BadRequestException('No items provided for reordering');
+  }
+
+  // 1. Validate all skills exist and belong to same category (for safety)
+  const skillIds = items.map((item) => item.id);
+  const skills = await this.prisma.skill.findMany({
+    where: { id: { in: skillIds } },
+    select: { id: true, categoryId: true, order: true },
+  });
+
+  if (skills.length !== items.length) {
+    throw new NotFoundException('One or more skills not found');
+  }
+
+  // Check all belong to same category (recommended for simplicity)
+  const categoryIds = new Set(skills.map((s) => s.categoryId));
+  if (categoryIds.size !== 1) {
+    throw new BadRequestException('All skills must belong to the same category for reordering');
+  }
+
+  // 2. Get current category
+  const categoryId = skills[0].categoryId;
+
+  // 3. TEMPORARILY shift all orders to a high number to avoid conflicts
+  //    (choose a number bigger than any possible real order)
+  const tempShift = 100000; // safe large number
+
+  await this.prisma.$transaction(
+    skills.map((skill) =>
+      this.prisma.skill.update({
+        where: { id: skill.id },
+        data: { order: tempShift + skill.order }, // temporary safe value
+      }),
+    ),
+  );
+
+  // 4. Now safely apply the final desired orders
+  await this.prisma.$transaction(
+    items.map((item) =>
+      this.prisma.skill.update({
+        where: { id: item.id },
+        data: { order: item.order },
+      }),
+    ),
+  );
+
+  return { success: true, message: 'Skills reordered successfully' };
+}
 
 
+async reorderCategories(items: ReorderItemDto[]) {
+  if (!items.length) {
+    throw new BadRequestException("No categories provided")
+  }
+
+  // 1️⃣ Validate categories exist
+  const ids = items.map(i => i.id)
+  const categories = await this.prisma.skillCategory.findMany({
+    where: { id: { in: ids } },
+  })
+
+  if (categories.length !== items.length) {
+    throw new NotFoundException("One or more categories not found")
+  }
+
+  // 2️⃣ TEMP shift orders (avoid unique collision)
+  await this.prisma.$transaction(
+    categories.map(cat =>
+      this.prisma.skillCategory.update({
+        where: { id: cat.id },
+        data: { order: cat.order + 1000 },
+      })
+    )
+  )
+
+  // 3️⃣ Apply final correct order
+  await this.prisma.$transaction(
+    items.map(item =>
+      this.prisma.skillCategory.update({
+        where: { id: item.id },
+        data: { order: item.order },
+      })
+    )
+  )
+
+  return true
+}
 
 
 }

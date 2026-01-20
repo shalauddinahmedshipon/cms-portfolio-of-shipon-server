@@ -61,12 +61,26 @@ export class ProfileService {
     });
   }
 
-  async getAllCodingProfiles() {
-    return this.prisma.codingProfile.findMany({
-      where: { profileId: 'main-profile' },
-      orderBy: { highlight: 'desc' },
-    });
-  }
+ async getAllCodingProfiles() {
+  return this.prisma.codingProfile.findMany({
+    where: { profileId: 'main-profile' },
+    orderBy: { order: 'asc' },
+  })
+}
+
+async reorderCodingProfiles(
+  items: { id: string; order: number }[],
+) {
+  await this.prisma.$transaction(
+    items.map((item) =>
+      this.prisma.codingProfile.update({
+        where: { id: item.id },
+        data: { order: item.order },
+      }),
+    ),
+  )
+}
+
 
   async getSingleCodingProfile(id: string) {
     return this.prisma.codingProfile.findUnique({

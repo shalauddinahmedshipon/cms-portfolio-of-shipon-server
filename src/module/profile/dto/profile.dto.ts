@@ -48,6 +48,14 @@ export class UpdateProfileDto {
 
 }
 
+export class ReorderCodingProfileDto {
+  @IsString()
+  id: string
+
+  @IsInt()
+  order: number
+}
+
 
 export class UpdateContactInfoDto {
   @ApiPropertyOptional({

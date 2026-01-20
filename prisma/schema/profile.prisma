@@ -44,6 +44,7 @@ model CodingProfile {
   rating      Int?
   badge       String?  // "Expert", "3 Star"
   highlight   Boolean  @default(false)
+  order       Int      @default(0)
 
   profileId   String
   profile     Profile  @relation(fields: [profileId], references: [id])

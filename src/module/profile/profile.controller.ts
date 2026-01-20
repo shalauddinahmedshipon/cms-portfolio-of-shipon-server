@@ -17,7 +17,7 @@ import { Response } from 'express';
 import { ApiTags, ApiOperation, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import sendResponse from '../utils/sendResponse';
-import { CreateCodingProfileDto, UpdateCodingProfileDto, UpdateContactInfoDto, UpdateProfileDto } from './dto/profile.dto';
+import { CreateCodingProfileDto, ReorderCodingProfileDto, UpdateCodingProfileDto, UpdateContactInfoDto, UpdateProfileDto } from './dto/profile.dto';
 import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
 
 @ApiTags('Profile')
@@ -180,6 +180,22 @@ async getSingleCodingProfile(
     message: 'Coding profile fetched successfully',
     data,
   });
+}
+
+@Patch('coding-profiles/reorder')
+@ApiOperation({ summary: 'Reorder coding profiles' })
+async reorderCodingProfiles(
+  @Body() body: ReorderCodingProfileDto[],
+  @Res() res: Response,
+) {
+  await this.profileService.reorderCodingProfiles(body)
+
+  return sendResponse(res, {
+    statusCode: HttpStatus.OK,
+    success: true,
+    message: 'Coding profiles reordered',
+    data:null
+  })
 }
 
 @Patch('coding-profiles/:id')

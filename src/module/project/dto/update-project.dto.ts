@@ -1,8 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
+import {
+  IsUUID,
+  IsArray,
+  IsOptional,
+  IsBoolean,
+  IsString,
+} from 'class-validator';
 
 export class UpdateProjectDto {
-   @ApiProperty({ example: 1, required: false })
-  serialNo?: number;
   @ApiProperty({ example: 'My Project', required: false })
   name?: string;
 
@@ -32,6 +38,9 @@ export class UpdateProjectDto {
     required: false,
     description: 'Mark project as favorite or not',
   })
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
   isFavorite?: boolean;
 
   @ApiProperty({
@@ -39,7 +48,21 @@ export class UpdateProjectDto {
     required: false,
     description: 'Soft delete toggle. If false, project is inactive',
   })
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
   isActive?: boolean;
+
+  // 🔥 NEW
+  @ApiProperty({
+    type: [String],
+    required: false,
+    description: 'Existing image URLs to remove',
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  removedImages?: string[];
 
   @ApiProperty({
     type: 'array',
@@ -49,3 +72,18 @@ export class UpdateProjectDto {
   })
   images?: any[];
 }
+
+
+
+
+export class ReorderProjectDto {
+  @ApiProperty({
+    type: [String],
+    example: ['clx1...', 'clx2...', 'clx3...'],
+    description: 'Ordered project IDs (first = top)',
+  })
+  @IsArray()
+  @IsUUID('all', { each: true })
+  ids: string[];
+}
+
