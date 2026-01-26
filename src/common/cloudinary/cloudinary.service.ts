@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
 import { UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
+import { BannerTypeEnum } from 'src/module/profile/dto/profile.dto';
 
 @Injectable()
 export class CloudinaryService {
@@ -13,9 +14,12 @@ export class CloudinaryService {
   }
 
   /**
-   * Upload an image to Cloudinary
+   * Upload an image to Cloudinary (unchanged)
    */
-  async uploadImage(file: Express.Multer.File, folder = 'portfolio'): Promise<string> {
+  async uploadImage(
+    file: Express.Multer.File,
+    folder = 'portfolio',
+  ): Promise<string> {
     return new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
@@ -30,7 +34,39 @@ export class CloudinaryService {
   }
 
   /**
-   * Delete an image from Cloudinary using URL
+   * Upload image OR video (NEW – minimal addition)
+   */
+async uploadMedia(
+  file: Express.Multer.File,
+  folder = 'portfolio',
+): Promise<{ url: string; type: BannerTypeEnum }> {
+  const isVideo = file.mimetype.startsWith('video');
+
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: isVideo ? 'video' : 'image',
+      },
+      (error, result) => {
+        if (error || !result) {
+          return reject(error || new Error('Cloudinary upload failed'));
+        }
+
+        resolve({
+          url: result.secure_url,
+          type: isVideo
+            ? BannerTypeEnum.VIDEO
+            : BannerTypeEnum.IMAGE,
+        });
+      },
+    ).end(file.buffer);
+  });
+}
+
+
+  /**
+   * Delete media from Cloudinary using URL (works for image & video)
    */
   async deleteImageByUrl(url: string) {
     const publicId = this.getPublicIdFromUrl(url);
@@ -43,8 +79,6 @@ export class CloudinaryService {
    * Extract Cloudinary publicId from URL
    */
   private getPublicIdFromUrl(url: string): string {
-    // example:
-    // https://res.cloudinary.com/demo/image/upload/v1729297134/project/abc123.jpg
     const parts = url.split('/');
     const folder = parts[parts.length - 2];
     const fileName = parts[parts.length - 1].split('.')[0];

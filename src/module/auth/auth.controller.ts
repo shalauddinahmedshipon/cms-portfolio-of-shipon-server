@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, Get, HttpStatus, Patch, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, HttpStatus, Param, Patch, Post, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import sendResponse from '../utils/sendResponse';
@@ -147,6 +147,54 @@ async getMe(@Req() req: Request) {
 
   return user;
 }
+
+
+@Get('users')
+@Roles(Role.ADMIN)
+async getUsers(@Res() res: Response) {
+  const users = await this.authService.getAllUsers()
+
+  return sendResponse(res, {
+    statusCode: HttpStatus.OK,
+    success: true,
+    message: 'Users fetched successfully',
+    data: users,
+  })
+}
+
+@Patch('users/:id/toggle-active')
+@Roles(Role.ADMIN)
+async toggleUserActive(
+  @Param('id') id: string,
+  @Res() res: Response,
+) {
+  const user = await this.authService.toggleUserActive(id)
+
+  return sendResponse(res, {
+    statusCode: HttpStatus.OK,
+    success: true,
+    message: 'User status updated',
+    data: user,
+  })
+}
+
+
+@Delete('users/:id')
+@Roles(Role.ADMIN)
+async deleteUser(
+  @Param('id') id: string,
+  @Res() res: Response,
+) {
+  await this.authService.deleteUser(id)
+
+  return sendResponse(res, {
+    statusCode: HttpStatus.OK,
+    success: true,
+    message: 'User deleted successfully',
+    data: null,
+  })
+}
+
 
 
 

@@ -64,34 +64,82 @@ export class AuthService {
   });
 }
 
+async getAllUsers() {
+  return this.prisma.user.findMany({
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      email: true,
+      fullName: true,
+      role: true,
+      isActive: true,
+      createdAt: true,
+    },
+  })
+}
 
 
-// change password 
-  async changePassword(email: string, dto: ChangePasswordDto) {
-    const user = await this.prisma.user.findUnique({ where: { email } });
-    if (!user || !user.password) {
-      throw new NotFoundException('User not found');
-    }
-  if(!user.isActive){
-      throw new BadRequestException('User is blocked!');
+
+async changePassword(email: string, dto: ChangePasswordDto) {
+  const user = await this.prisma.user.findUnique({ where: { email } })
+
+  if (!user || !user.password) {
+    throw new NotFoundException('User not found')
   }
-    const isMatch = await bcrypt.compare(dto.oldPassword, user.password);
+
+  if (!user.isActive) {
+    throw new BadRequestException('User is blocked!')
+  }
+
+  const updateData: any = {}
+
+  // =========================
+  // UPDATE FULL NAME (OPTIONAL)
+  // =========================
+  if (dto.fullName && dto.fullName !== user.fullName) {
+    updateData.fullName = dto.fullName
+  }
+
+  // =========================
+  // UPDATE PASSWORD (OPTIONAL)
+  // =========================
+  if (dto.newPassword || dto.confirmPassword || dto.oldPassword) {
+    if (!dto.oldPassword || !dto.newPassword || !dto.confirmPassword) {
+      throw new BadRequestException(
+        'Old password, new password and confirm password are required'
+      )
+    }
+
+    const isMatch = await bcrypt.compare(dto.oldPassword, user.password)
     if (!isMatch) {
-      throw new BadRequestException('Old password is incorrect');
+      throw new BadRequestException('Old password is incorrect')
     }
 
     if (dto.newPassword !== dto.confirmPassword) {
-      throw new BadRequestException("Passwords don't match");
+      throw new BadRequestException("Passwords don't match")
     }
 
-    const hashed = await bcrypt.hash(dto.newPassword, parseInt(process.env.SALT_ROUND!) );
-    await this.prisma.user.update({
-      where: { email },
-      data: { password: hashed },
-    });
-
-    return { message: 'Password changed successfully' };
+    updateData.password = await bcrypt.hash(
+      dto.newPassword,
+      parseInt(process.env.SALT_ROUND!)
+    )
   }
+
+  // Nothing to update
+  if (Object.keys(updateData).length === 0) {
+    throw new BadRequestException('No changes provided')
+  }
+
+  await this.prisma.user.update({
+    where: { email },
+    data: updateData,
+  })
+
+  return {
+    message: 'Account updated successfully',
+  }
+}
+
 
 
 // forget and reset password 
@@ -174,5 +222,44 @@ export class AuthService {
 
   return user;
 }
+
+
+async toggleUserActive(userId: string) {
+  const user = await this.prisma.user.findUnique({
+    where: { id: userId },
+  })
+
+  if (!user) {
+    throw new NotFoundException('User not found')
+  }
+
+  return this.prisma.user.update({
+    where: { id: userId },
+    data: { isActive: !user.isActive },
+    select: {
+      id: true,
+      email: true,
+      fullName: true,
+      role: true,
+      isActive: true,
+    },
+  })
+}
+
+
+async deleteUser(userId: string) {
+  const user = await this.prisma.user.findUnique({
+    where: { id: userId },
+  })
+
+  if (!user) {
+    throw new NotFoundException('User not found')
+  }
+
+  return this.prisma.user.delete({
+    where: { id: userId },
+  })
+}
+
 
 }

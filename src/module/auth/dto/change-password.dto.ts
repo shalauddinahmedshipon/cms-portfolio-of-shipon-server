@@ -1,27 +1,39 @@
 // src/user/dto/change-password.dto.ts
-import { IsString, MinLength, Matches } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional, IsString, MinLength } from 'class-validator'
+import { ApiPropertyOptional } from '@nestjs/swagger'
 
 export class ChangePasswordDto {
-  @ApiProperty({
+  // 🔹 OPTIONAL NAME UPDATE
+  @ApiPropertyOptional({
+    example: 'John Doe',
+    description: 'Update full name (optional)',
+  })
+  @IsOptional()
+  @IsString()
+  fullName?: string
+
+  // 🔹 PASSWORD CHANGE (OPTIONAL BUT LINKED)
+  @ApiPropertyOptional({
     example: 'oldPassword123',
-    description: 'Your current password',
+    description: 'Current password (required if changing password)',
   })
-  @IsString({ message: 'Old password must be a string.' })
-  oldPassword: string;
+  @IsOptional()
+  @IsString()
+  oldPassword?: string
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'newSecurePass456',
-    description: 'Your new password (minimum 6 characters)',
+    minLength: 6,
   })
-  @IsString({ message: 'New password must be a string.' })
-  @MinLength(6, { message: 'New password must be at least 6 characters long.' })
-  newPassword: string;
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  newPassword?: string
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'newSecurePass456',
-    description: 'Repeat the new password to confirm',
   })
-  @IsString({ message: 'Confirm password must be a string.' })
-  confirmPassword: string;
+  @IsOptional()
+  @IsString()
+  confirmPassword?: string
 }

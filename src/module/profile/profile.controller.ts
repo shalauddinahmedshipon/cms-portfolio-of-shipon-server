@@ -63,6 +63,7 @@ export class ProfileController {
         bio: { type: 'string', example: 'I love building APIs and web apps.' },
         resumeUrl: { type: 'string', example: 'https://example.com/resume.pdf' },
         location: { type: 'string', example: 'Dhaka, Bangladesh' },
+        bannerType: { type: 'string', example: 'IMAGE or VIDEO' },
         avatar: { type: 'string', format: 'binary', description: 'Avatar image file' },
         banner: { type: 'string', format: 'binary', description: 'Banner image file' },
       },
@@ -79,10 +80,15 @@ export class ProfileController {
       dto.avatarUrl = await this.cloudinaryService.uploadImage(files.avatar[0], 'profile');
     }
 
-    // Upload banner if provided
-    if (files?.banner?.length) {
-      dto.bannerUrl = await this.cloudinaryService.uploadImage(files.banner[0], 'profile');
-    }
+   if (files?.banner?.length) {
+  const banner = await this.cloudinaryService.uploadMedia(
+    files.banner[0],
+    'profile-banners',
+  );
+
+  dto.bannerUrl = banner.url;
+  dto.bannerType = banner.type;
+}
 
     const profile = await this.profileService.updateProfile(dto);
     return sendResponse(res, {

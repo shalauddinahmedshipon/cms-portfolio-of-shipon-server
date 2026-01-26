@@ -7,11 +7,17 @@ model Profile {
   avatarUrl    String?
   resumeUrl    String?
   bannerUrl    String?
+  bannerType   BannerType? 
   location     String?
   contactInfo  ContactInfo?
   codingProfile  CodingProfile[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+enum BannerType {
+  IMAGE
+  VIDEO
 }
 
 

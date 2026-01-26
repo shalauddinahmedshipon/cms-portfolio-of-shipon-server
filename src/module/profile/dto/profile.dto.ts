@@ -1,9 +1,12 @@
-import { IsBoolean, IsInt, IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, IsUrl } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { IsEmail } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-
+export enum BannerTypeEnum {
+  IMAGE = 'IMAGE',
+  VIDEO = 'VIDEO',
+}
 
 export class UpdateProfileDto {
   @ApiPropertyOptional({ example: 'John Doe', description: 'Full name of the user' })
@@ -45,6 +48,15 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsUrl()
   bannerUrl?: string;
+
+   @ApiPropertyOptional({
+    enum: BannerTypeEnum,
+    example: BannerTypeEnum.IMAGE,
+    description: 'Banner media type (IMAGE or VIDEO)',
+  })
+  @IsOptional()
+  @IsEnum(BannerTypeEnum)
+  bannerType?: BannerTypeEnum;
 
 }
 
