@@ -19,6 +19,7 @@ import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express
 import sendResponse from '../utils/sendResponse';
 import { CreateCodingProfileDto, ReorderCodingProfileDto, UpdateCodingProfileDto, UpdateContactInfoDto, UpdateProfileDto } from './dto/profile.dto';
 import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
+import { Public } from 'src/common/decorators/public.decorators';
 
 @ApiTags('Profile')
 @Controller('profile')
@@ -30,6 +31,7 @@ export class ProfileController {
 
   // GET profile
   @Get()
+  @Public()
   @ApiOperation({ summary: 'Get personal profile' })
   @ApiResponse({ status: 200, description: 'Profile fetched successfully' })
   async getProfile(@Res() res: Response) {
@@ -157,6 +159,7 @@ async createCodingProfile(
 }
 
 @Get('coding-profiles')
+@Public()
 @ApiOperation({ summary: 'Get all coding profiles' })
 @ApiResponse({ status: 200, description: 'Coding profiles fetched successfully' })
 async getAllCodingProfiles(@Res() res: Response) {
@@ -172,6 +175,7 @@ async getAllCodingProfiles(@Res() res: Response) {
 
 
 @Get('coding-profiles/:id')
+@Public()
 @ApiOperation({ summary: 'Get single coding profile' })
 @ApiResponse({ status: 200, description: 'Coding profile fetched successfully' })
 async getSingleCodingProfile(
