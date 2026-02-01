@@ -10,12 +10,15 @@ export class ContactService {
     // Configure your SMTP transporter
     this.transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com', // Gmail SMTP
-      port: 465,
-      secure: true,
+      port: 587,
+      secure: false,
       auth: {
         user: process.env.CONTACT_EMAIL,      // Your email
         pass: process.env.CONTACT_EMAIL_PASS, // App password if Gmail
       },
+      tls: {
+    rejectUnauthorized: false,
+  },
     });
   }
 

@@ -4,6 +4,7 @@ import { Response } from 'express';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ContactDto } from './dto/contact.dto';
 import sendResponse from '../utils/sendResponse';
+import { Public } from 'src/common/decorators/public.decorators';
 
 @ApiTags('Contact')
 @Controller('contact')
@@ -11,6 +12,7 @@ export class ContactController {
   constructor(private readonly contactService: ContactService) {}
 
   @Post()
+  @Public()
   @ApiOperation({ summary: 'Send a contact message' })
   @ApiResponse({ status: 200, description: 'Message sent successfully' })
   async sendMessage(@Body() dto: ContactDto, @Res() res: Response) {

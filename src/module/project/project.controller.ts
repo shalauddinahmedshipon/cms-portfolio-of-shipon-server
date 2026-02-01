@@ -89,47 +89,97 @@ async reorder(
 
 
 
-  @Patch(':id')
-  @ApiOperation({ summary: 'Update a project (replace images)' })
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({ type: UpdateProjectDto })
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'images', maxCount: 10 }]))
-  async update(
-    @Param('id') id: string,
-    @Body() body: any,
-    @UploadedFiles() files: { images?: Express.Multer.File[] },
-    @Res() res: Response,
-  ) {
-   const dto: UpdateProjectDto = {
-    ...body,
-    category: body.category as 'LEARNING' | 'LIVE',
-    isFavorite: body.isFavorite === 'true' || body.isFavorite === true,
-    isActive: body.isActive === 'true' || body.isActive === true,
-  };
+  // @Patch(':id')
+  // @ApiOperation({ summary: 'Update a project (replace images)' })
+  // @ApiConsumes('multipart/form-data')
+  // @ApiBody({ type: UpdateProjectDto })
+  // @UseInterceptors(FileFieldsInterceptor([{ name: 'images', maxCount: 10 }]))
+  // async update(
+  //   @Param('id') id: string,
+  //   @Body() body: any,
+  //   @UploadedFiles() files: { images?: Express.Multer.File[] },
+  //   @Res() res: Response,
+  // ) {
+  //  const dto: UpdateProjectDto = {
+  //   ...body,
+  //   category: body.category as 'LEARNING' | 'LIVE',
+  //   isFavorite: body.isFavorite === 'true' || body.isFavorite === true,
+  //   isActive: body.isActive === 'true' || body.isActive === true,
+  // };
 
-   if (body.serialNo !== undefined) {
-    dto['serialNo'] = Number(body.serialNo);
+  //  if (body.serialNo !== undefined) {
+  //   dto['serialNo'] = Number(body.serialNo);
+  // }
+
+
+  //   const uploadedUrls = files?.images
+  //     ? await Promise.all(
+  //         files.images.map((file) =>
+  //           this.cloudinaryService.uploadImage(file, 'project'),
+  //         ),
+  //       )
+  //     : [];
+
+  //   const project = await this.projectService.update(id, dto, uploadedUrls);
+
+  //   return sendResponse(res, {
+  //     statusCode: HttpStatus.OK,
+  //     success: true,
+  //     message: 'Project updated successfully',
+  //     data: project,
+  //   });
+  // }  
+
+ @Patch(':id')
+@ApiConsumes('multipart/form-data')
+@UseInterceptors(FileFieldsInterceptor([{ name: 'images', maxCount: 10 }]))
+async update(
+  @Param('id') id: string,
+  @Body() body: any,                    // ← keep any for now
+  @UploadedFiles() files: { images?: Express.Multer.File[] },
+  @Res() res: Response,
+) {
+  // Manually build DTO – safer with multipart
+  const dto = new UpdateProjectDto();
+
+  if (body.name)          dto.name = body.name;
+  if (body.title)         dto.title = body.title;
+  if (body.description)   dto.description = body.description;
+  if (body.technology)    dto.technology = body.technology;
+  if (body.category)      dto.category = body.category as 'LEARNING' | 'LIVE';
+
+  // URLs – allow empty string if sent
+  if ('liveSiteUrl' in body)       dto.liveSiteUrl = body.liveSiteUrl || '';
+  if ('githubFrontendUrl' in body) dto.githubFrontendUrl = body.githubFrontendUrl || '';
+  if ('githubBackendUrl' in body)  dto.githubBackendUrl = body.githubBackendUrl || '';
+
+  // Booleans only if explicitly sent
+  if ('isFavorite' in body) {
+    dto.isFavorite = body.isFavorite === 'true' || body.isFavorite === true || body.isFavorite === 'false' || body.isFavorite === false;
+  }
+  if ('isActive' in body) {
+    dto.isActive = body.isActive === 'true' || body.isActive === true || body.isActive === 'false' || body.isActive === false;
   }
 
-
-    const uploadedUrls = files?.images
-      ? await Promise.all(
-          files.images.map((file) =>
-            this.cloudinaryService.uploadImage(file, 'project'),
-          ),
-        )
-      : [];
-
-    const project = await this.projectService.update(id, dto, uploadedUrls);
-
-    return sendResponse(res, {
-      statusCode: HttpStatus.OK,
-      success: true,
-      message: 'Project updated successfully',
-      data: project,
-    });
+  if ('removedImages' in body) {
+    dto.removedImages = Array.isArray(body.removedImages) ? body.removedImages : [body.removedImages];
   }
 
+  const uploadedUrls = files?.images
+    ? await Promise.all(
+        files.images.map(file => this.cloudinaryService.uploadImage(file, 'project'))
+      )
+    : [];
+
+  const updated = await this.projectService.update(id, dto, uploadedUrls);
+
+  return sendResponse(res, {
+    statusCode: HttpStatus.OK,
+    success: true,
+    message: 'Project updated successfully',
+    data: updated,
+  });
+}
   @Delete(':id')
   @ApiOperation({ summary: 'Delete project + cloudinary images' })
   async delete(@Param('id') id: string, @Res() res: Response) {
@@ -181,6 +231,7 @@ async reorder(
   }
 
   @Get(':id')
+  @Public()
   async findOne(@Param('id') id: string, @Res() res: Response) {
     const data = await this.projectService.findOne(id);
     return sendResponse(res, {

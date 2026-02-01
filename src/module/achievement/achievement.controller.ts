@@ -18,6 +18,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import sendResponse from '../utils/sendResponse';
 import { CreateAchievementDto, UpdateAchievementDto } from './dto/achievement.dto';
 import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
+import { Public } from 'src/common/decorators/public.decorators';
 
 @ApiTags('Achievement')
 @Controller('achievements')
@@ -68,6 +69,7 @@ export class AchievementController {
 
   /* GET ALL */
   @Get()
+  @Public()
   @ApiOperation({ summary: 'Get all achievements' })
   @ApiResponse({ status: 200, description: 'Achievements fetched successfully' })
   async getAllAchievements(@Res() res: Response) {

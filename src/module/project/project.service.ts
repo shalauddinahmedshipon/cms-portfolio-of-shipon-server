@@ -35,6 +35,65 @@ export class ProjectService {
 }
 
 // ---------- UPDATE PROJECT ----------
+// async update(
+//   id: string,
+//   dto: UpdateProjectDto,
+//   newImages: string[] = [],
+// ) {
+//   const existing = await this.prisma.project.findUnique({
+//     where: { id },
+//   });
+
+//   if (!existing) {
+//     throw new NotFoundException('Project not found');
+//   }
+
+//   /**
+//    * STEP 1: Start with existing images
+//    */
+//   let imagesToSave = [...(existing.images || [])];
+
+//   /**
+//    * STEP 2: Remove selected old images
+//    */
+//   if (Array.isArray(dto.removedImages) && dto.removedImages.length > 0) {
+//     for (const url of dto.removedImages) {
+//       await this.cloudinaryService.deleteImageByUrl(url);
+//     }
+
+//     imagesToSave = imagesToSave.filter(
+//       (img) => !dto.removedImages!.includes(img),
+//     );
+//   }
+
+//   /**
+//    * STEP 3: Add newly uploaded images
+//    */
+//   if (newImages.length > 0) {
+//     imagesToSave.push(...newImages);
+//   }
+
+//   /**
+//    * STEP 4: Update project (NO serialNo update)
+//    */
+//   return this.prisma.project.update({
+//     where: { id },
+//     data: {
+//       name: dto.name,
+//       title: dto.title,
+//       description: dto.description,
+//       technology: dto.technology,
+//       liveSiteUrl: dto.liveSiteUrl,
+//       githubFrontendUrl: dto.githubFrontendUrl,
+//       githubBackendUrl: dto.githubBackendUrl,
+//       category: dto.category,
+//       isFavorite: dto.isFavorite,
+//       isActive: dto.isActive,
+//       images: imagesToSave,
+//     },
+//   });
+// }
+
 async update(
   id: string,
   dto: UpdateProjectDto,
@@ -48,52 +107,48 @@ async update(
     throw new NotFoundException('Project not found');
   }
 
-  /**
-   * STEP 1: Start with existing images
-   */
   let imagesToSave = [...(existing.images || [])];
 
-  /**
-   * STEP 2: Remove selected old images
-   */
   if (Array.isArray(dto.removedImages) && dto.removedImages.length > 0) {
     for (const url of dto.removedImages) {
       await this.cloudinaryService.deleteImageByUrl(url);
     }
-
     imagesToSave = imagesToSave.filter(
       (img) => !dto.removedImages!.includes(img),
     );
   }
 
-  /**
-   * STEP 3: Add newly uploaded images
-   */
   if (newImages.length > 0) {
     imagesToSave.push(...newImages);
   }
 
-  /**
-   * STEP 4: Update project (NO serialNo update)
-   */
+  // ────────────────────────────────────────────────
+  // Build data object dynamically – only include fields that were sent
+  // ────────────────────────────────────────────────
+  const data: any = {
+    images: imagesToSave,
+  };
+
+  if (dto.name !== undefined)          data.name = dto.name;
+  if (dto.title !== undefined)         data.title = dto.title;
+  if (dto.description !== undefined)   data.description = dto.description;
+  if (dto.technology !== undefined)    data.technology = dto.technology;
+  if (dto.category !== undefined)      data.category = dto.category;
+
+  // Only update URLs if they were explicitly sent (even if empty string)
+  if ('liveSiteUrl' in dto)           data.liveSiteUrl = dto.liveSiteUrl;
+  if ('githubFrontendUrl' in dto)     data.githubFrontendUrl = dto.githubFrontendUrl;
+  if ('githubBackendUrl' in dto)      data.githubBackendUrl = dto.githubBackendUrl;
+
+  // ─── Only include these if frontend actually sent them ───
+  if (dto.isFavorite !== undefined)    data.isFavorite = dto.isFavorite;
+  if (dto.isActive !== undefined)      data.isActive = dto.isActive;
+
   return this.prisma.project.update({
     where: { id },
-    data: {
-      name: dto.name,
-      title: dto.title,
-      description: dto.description,
-      technology: dto.technology,
-      liveSiteUrl: dto.liveSiteUrl,
-      githubFrontendUrl: dto.githubFrontendUrl,
-      githubBackendUrl: dto.githubBackendUrl,
-      category: dto.category,
-      isFavorite: dto.isFavorite,
-      isActive: dto.isActive,
-      images: imagesToSave,
-    },
+    data,
   });
 }
-
 
   // ---------- DELETE ----------
   async delete(id: string) {

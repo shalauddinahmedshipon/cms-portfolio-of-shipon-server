@@ -19,6 +19,7 @@ import { UpdateEducationDto } from './dto/update-education.dto';
 import sendResponse from '../utils/sendResponse';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
+import { Public } from 'src/common/decorators/public.decorators';
 
 @ApiTags('Education')
 @Controller('education')
@@ -97,6 +98,7 @@ export class EducationController {
   }
 
   @Get()
+  @Public()
   @ApiOperation({ summary: 'Get all education records with pagination' })
   async getAll(@Res() res: Response) {
     const data = await this.educationService.getAll();

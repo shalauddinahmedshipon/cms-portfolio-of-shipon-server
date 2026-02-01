@@ -23,6 +23,7 @@ import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
 import { UpdateExperienceDto } from './dto/update-experience.dto';
 import sendResponse from '../utils/sendResponse';
 import { CreateExperienceDto } from './dto/create-expirience.dto';
+import { Public } from 'src/common/decorators/public.decorators';
 
 @ApiTags('Experience')
 @Controller('experience')
@@ -105,6 +106,7 @@ async create(
   }
 
   @Get()
+  @Public()
   async getAll(@Res() res: Response) {
     const data = await this.experienceService.getAll();
     return sendResponse(res, {
@@ -116,6 +118,7 @@ async create(
   }
 
   @Get(':id')
+  @Public()
   async findOne(@Param('id') id: string, @Res() res: Response) {
     const data = await this.experienceService.findOne(id);
     return sendResponse(res, {
