@@ -86,7 +86,7 @@ export class EventService {
 
   // ---------- GET ALL (TIME-BASED ORDER) ----------
   async getAllEvents(query: GetEventsQueryDto) {
-    const { page = 1, limit = 10, search, eventType, isActive } = query;
+    const { page = 1, limit = 10, search, eventType, isActive,isFavorite } = query;
     const skip = (page - 1) * limit;
 
     const where: any = {};
@@ -102,6 +102,7 @@ export class EventService {
 
     if (eventType) where.eventType = eventType;
     if (typeof isActive === 'boolean') where.isActive = isActive;
+    if (typeof isFavorite === 'boolean') where.isFavorite = isFavorite;
 
     const [data, total] = await Promise.all([
       this.prisma.event.findMany({

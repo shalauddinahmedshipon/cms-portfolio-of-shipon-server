@@ -155,6 +155,7 @@ async reorder(@Body() dto: ReorderBlogDto, @Res() res: Response) {
  }
 
  @Get(':id')
+ @Public()
  async getOne(@Param('id') id: string, @Res() res: Response) {
   const blog = await this.blogService.findOne(id);
 

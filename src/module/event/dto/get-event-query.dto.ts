@@ -38,4 +38,10 @@ export class GetEventsQueryDto {
   @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   isActive?: boolean;
+
+  @ApiPropertyOptional({ example: true, description: 'Filter by favorite events' })
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  isFavorite?: boolean;
 }

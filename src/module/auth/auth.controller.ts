@@ -32,19 +32,14 @@ async login(
 ) {
   const { user, accessToken } = await this.authService.login(dto);
 
-  res.cookie('access_token', accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    path: '/',
-  });
-
-  return sendResponse(res, {
+   return sendResponse(res, {
     statusCode: HttpStatus.OK,
     success: true,
     message: 'Login successful',
-    data: { user }, 
+    data: {
+      user,
+      accessToken, 
+    },
   });
 }
 
@@ -121,19 +116,6 @@ async login(
     });
   }
 
-@Post('logout')
-logout(@Res({ passthrough: true }) res: Response) {
-  res.clearCookie('access_token', {
-    path: '/',
-  });
-
-  return sendResponse(res, {
-    statusCode: HttpStatus.OK,
-    success: true,
-    message: 'Logout successful',
-    data: null,
-  });
-}
 
 
 @ApiOperation({ summary: 'Get current authenticated user' })

@@ -129,6 +129,7 @@ export class EventController {
   }
 
   @Get(':id')
+  @Public()
   async findOne(@Param('id') id: string, @Res() res: Response) {
     const event = await this.eventService.findOne(id);
 
