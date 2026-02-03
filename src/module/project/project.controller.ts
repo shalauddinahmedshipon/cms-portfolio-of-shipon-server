@@ -153,13 +153,18 @@ async update(
   if ('githubFrontendUrl' in body) dto.githubFrontendUrl = body.githubFrontendUrl || '';
   if ('githubBackendUrl' in body)  dto.githubBackendUrl = body.githubBackendUrl || '';
 
-  // Booleans only if explicitly sent
+
+
   if ('isFavorite' in body) {
-    dto.isFavorite = body.isFavorite === 'true' || body.isFavorite === true || body.isFavorite === 'false' || body.isFavorite === false;
-  }
-  if ('isActive' in body) {
-    dto.isActive = body.isActive === 'true' || body.isActive === true || body.isActive === 'false' || body.isActive === false;
-  }
+  dto.isFavorite =
+    body.isFavorite === 'true' || body.isFavorite === true;
+}
+
+if ('isActive' in body) {
+  dto.isActive =
+    body.isActive === 'true' || body.isActive === true;
+}
+
 
   if ('removedImages' in body) {
     dto.removedImages = Array.isArray(body.removedImages) ? body.removedImages : [body.removedImages];
