@@ -17,11 +17,12 @@ import { EducationModule } from './module/education/education.module';
 import { ExperienceModule } from './module/experience/experience.module';
 import { AchievementModule } from './module/achievement/achievement.module';
 import { ContactModule } from './module/contact/contact.module';
-
+import { ScheduleModule } from '@nestjs/schedule';
 
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(), 
     MailerModule.forRoot({
       transport: {
         service: 'gmail',
